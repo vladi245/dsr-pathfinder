@@ -1,0 +1,31 @@
+# Achievements that aren't items: covenants, bells, bosses, endings, upgrades.
+# Format:  map | title | text   (map = which area section the step goes in; "end" = final section)
+# Text can use " / " to start a new line. Steps are added after the item steps of that area.
+# When the guide follows tools/walkthrough.txt, only the "extra" lines are used (the walkthrough
+# already covers the rest); otherwise "extra" lines go in the final section.
+
+m18_01_00_00 | Estus Flask | Get the Estus Flask from the dying knight (Oscar) after the boulder corridor.
+m10_02_00_00 | Covenant: Way of White | Talk to Petrus of Thorolund in Firelink Shrine and join the Way of White.
+m10_02_00_00 | Enkindle | Kindle any bonfire while human (reverse hollowing with Humanity first).
+m10_01_00_00 | Covenant: Warrior of Sunlight | Pray at the Altar of Sunlight in the Undead Parish and join.
+m10_01_00_00 | Ring the Bell (Undead Church) | Defeat the Bell Gargoyles on the church roof, climb the tower and ring the bell.
+m12_00_00_01 | Covenant: Forest Hunter | Talk to Alvina, the white cat in Darkroot Garden, and join.
+m12_00_00_01 | Art of Abysswalking | Defeat Great Grey Wolf Sif; the Covenant of Artorias ring drops.
+m14_00_00_00 | Ring the Bell (Quelaag's Domain) | Defeat Chaos Witch Quelaag and ring the second bell.
+m14_00_00_00 | Covenant: Chaos Servant | Behind Quelaag's arena, talk to Eingyi, then to Quelaag's sister, and join.
+m15_01_00_00 | Lordvessel | Defeat Ornstein and Smough, then talk to Gwynevere to receive the Lordvessel.
+m15_01_00_00 | Covenant: Princess's Guard | Talk to Gwynevere and join the Princess's Guard.
+m15_01_00_00 | Covenant: Blade of the Darkmoon | Join Dark Sun Gwyndolin's covenant at the Darkmoon Tomb. / Earn the Darkmoon Blade rank reward before fighting Gwyndolin.
+m15_01_00_00 | Defeat Dark Sun Gwyndolin | Fight Gwyndolin in the Darkmoon Tomb. / Killing him ends the Darkmoon covenant: get its rewards first.
+m11_00_00_00 | Defeat Crossbreed Priscilla | Cut her tail first (Priscilla's Dagger), then defeat her.
+m16_00_00_00 | Defeat the Four Kings | Equip the Covenant of Artorias to walk the Abyss and defeat the Four Kings.
+m16_00_00_00 | Covenant: Darkwraith | After the Four Kings, Darkstalker Kaathe offers the Darkwraith covenant if you haven't placed the Lordvessel. Join for the achievement and the Dark Hand.
+m13_02_00_00 | Covenant: Path of the Dragon | At the far end of Ash Lake, talk to the Everlasting Dragon and join.
+m17_00_00_00 | Defeat Seath the Scaleless | Cut his tail first (Moonlight Greatsword), then defeat him in the Crystal Cave.
+m14_01_00_00 | Defeat Bed of Chaos | Defeat the Bed of Chaos at the bottom of Lost Izalith.
+m13_00_00_00 | Rite of Kindling | Defeat Pinwheel; the Rite of Kindling drops.
+m13_01_00_00 | Covenant: Gravelord Servant | Find the coffin near the end of the Tomb of the Giants and lie in it to join.
+m13_01_00_00 | Defeat Gravelord Nito | Defeat Gravelord Nito.
+extra | Weapon upgrade achievements | Max out one weapon on each path: Normal +15, Crystal +5, Lightning +5, Raw +5, Magic +10, Enchanted +5, Divine +10, Occult +5, Fire +10, Chaos +5.
+end | Ending: To Link the Fire | After Gwyn, light the bonfire in the Kiln of the First Flame.
+end | Ending: The Dark Lord | In another playthrough, after Gwyn, walk out of the Kiln without lighting the bonfire.

@@ -1,0 +1,19 @@
+# Shop lineup groups (ShopLineupParam row id // 100 * 100) -> who sells them.
+# Inferred from what each group stocks and checked against the game's prices.
+1100 = Undead Merchant (Undead Burg)
+1400 = Andre of Astora (Undead Parish)
+1600 = Trusty Patches
+1700 = Shiva of the East (Blighttown, by the waterwheel lift; Forest Hunter covenant members only)
+2000 = Griggs of Vinheim (Firelink Shrine, after freeing him in the Lower Undead Burg; needs 10 Intelligence; Soul Spear and Homing Soulmass once Logan has left)
+2100 = Rickert of Vinheim (New Londo Ruins, in his cell)
+2200 = Dusk of Oolacile (Darkroot Basin, after rescuing her)
+2400 = Ingward (New Londo Ruins)
+3000 = Laurentius of the Great Swamp (Firelink Shrine)
+3200 = Eingyi (Quelaag's Domain)
+3400 = Quelana of Izalith (Blighttown swamp, near Quelaag's Domain; appears once your Pyromancy Flame is +10)
+4000 = Petrus of Thorolund (Firelink Shrine)
+4200 = Reah of Thorolund (Undead Parish altar, after rescuing her from the Tomb of the Giants; visit soon or Petrus kills her)
+4400 = Oswald of Carim (Undead Parish bell tower)
+5000 = Big Hat Logan (Duke's Archives)
+6200 = Giant Blacksmith (Anor Londo)
+6500 = Elizabeth (Oolacile Sanctuary, sells Dusk's sorceries)

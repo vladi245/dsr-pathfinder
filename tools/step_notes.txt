@@ -1,0 +1,13 @@
+# Extra lines added to walkthrough steps: levelling advice and stat checks for a 100% run.
+#   step id = text     (several lines for one step are kept in order)
+# The achievements only need you to own every spell, not cast it, so few stats are ever checked.
+# Thresholds from the Dark Souls wiki (darksouls.wiki.fextralife.com): Warrior of Sunlight,
+# Griggs of Vinheim, Big Hat Logan, Eingyi.
+
+wt-firelink-shrine-1 = Build: any class can get every achievement. Only a few stats are ever checked: 25 Faith for the Warrior of Sunlight, 10 Intelligence for Griggs, 15 Intelligence for Logan at Firelink. The steps that need them say so.
+wt-firelink-shrine-1 = Early levels: Vitality and Endurance to about 20, and Strength or Dexterity to what your weapon needs. (Pyromancer is an easy start for a 100% run: it begins with 10 Intelligence, and you upgrade its flame to +10 for Quelana anyway.)
+wt-undead-burg-20 = Needs 25 Faith, 5 less for each boss you've helped kill as a summoned phantom. Short of it? Come back later: the altar is next to this bonfire.
+wt-lower-undead-burg-11 = Griggs only sells with 10 Intelligence. Aural Decoy counts toward Wisdom of a Sage.
+wt-sen-s-fortress-12 = Logan only teaches at Firelink with 15 Intelligence; raise it before you visit him there. In the Duke's Archives he sells to anyone.
+wt-blighttown-and-quelaag-s-domain-29 = With 11 Intelligence Eingyi also gives you a Pyromancy Flame (not needed for anything).
+wt-anor-londo-1 = Levelling check: have 25 Faith (if you haven't joined the Warrior of Sunlight yet) and 15 Intelligence by now. After that nothing checks your stats: put levels into Vitality, Endurance and your weapon's stats.

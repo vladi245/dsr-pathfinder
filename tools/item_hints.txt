@@ -1,0 +1,23 @@
+# How to get achievement items the game awards through scripted events (covenant ranks, tail
+# cuts, NPC gifts), which the generator can't locate from item tables. One line per item:
+#   Item name = how to get it
+# Items with no line here show up in the guide as "fill in from your guide".
+
+Drake Sword = Cut off the tail of the Hellkite Wyvern on the Undead Burg bridge (arrows from below work).
+Dragon King Greataxe = Cut off the Gaping Dragon's tail (boss of the Depths).
+Moonlight Greatsword = Cut off Seath the Scaleless's tail (Crystal Cave boss).
+Priscilla's Dagger = Cut off Crossbreed Priscilla's tail (Painted World of Ariamis).
+Dragon Greatsword = Cut off the tail of the Everlasting Dragon in Ash Lake.
+Gravelord Sword = Reward for joining the Gravelord Servant covenant.
+Dark Hand = Reward for joining the Darkwraith covenant (Darkstalker Kaathe).
+Lightning Spear = Warrior of Sunlight covenant rank reward.
+Great Lightning Spear = Warrior of Sunlight covenant rank reward.
+Sunlight Spear = Warrior of Sunlight covenant rank reward.
+Darkmoon Blade = Blade of the Darkmoon covenant rank reward.
+Gravelord Sword Dance = Gravelord Servant covenant rank reward.
+Gravelord Greatsword Dance = Gravelord Servant covenant rank reward.
+Emit Force = Gift from Siegmeyer at Firelink Shrine after you've met him in Anor Londo.
+Pursuers = Trade the Soul of Manus (Oolacile, Artorias of the Abyss) to Snuggly the Crow, in the nest on the Northern Undead Asylum roof (where the crow drops you when you go back).
+Replenishment = Talk to Reah in the Tomb of the Giants after rescuing her.
+Chaos Storm = Chaos Servant covenant rank reward.
+Great Chaos Fireball = Chaos Servant covenant rank reward.

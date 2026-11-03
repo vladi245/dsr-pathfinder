@@ -1,0 +1,13 @@
+# Things the game data files under the wrong spot.
+#   name = whose spot to use instead       (another item or character)
+#   name = x, y, z                         (a fixed position)
+#   name = none                            (its position is no use as a destination)
+
+# The Big Pilgrim's Key sits in Oscar's item list, but a script drops it where the Asylum Demon dies.
+Big Pilgrim's Key = Asylum Demon
+# The giant crow's model is placed in the air above Firelink; you ride it by curling up in the nest
+# on the roof. Region "event たまごになる予定の場所" (where you curl up "into an egg") in m10_02.
+Giant Crow = -43.4, -31.4, 101.1
+# The Hellkite is placed somewhere in the air, where the game parks it between its scripted flights
+# over the bridge; nothing routes there.
+Hellkite Drake = none

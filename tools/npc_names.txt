@@ -1,0 +1,51 @@
+# English names for the game's NPC rows (NpcParam id = name), so walkthrough steps that send you
+# to someone ("Speak with Oscar", "Give it to Anastacia") get a destination. The game only names
+# these rows in Japanese (e.g. 6020 騎士オストラ); English row names are from the modding
+# community's Paramdex (github.com/soulsmods/Paramdex), checked against where each one spawns.
+# Hollowed and invading variants are left out so the guide points at the friendly one.
+6010 = Darkmoon Knightess
+6020 = Oscar
+6030 = Logan
+6031 = Logan
+6040 = Griggs
+6070 = Reah
+6080 = Petrus
+6090 = Nico
+6100 = Vince
+6130 = Laurentius
+6170 = Quelana
+6180 = Ingward
+6220 = Rickert
+6250 = Crestfallen Merchant
+6260 = Domhnall
+6270 = Crestfallen Warrior
+6280 = Siegmeyer
+6281 = Siegmeyer
+6282 = Siegmeyer
+6283 = Siegmeyer
+6284 = Siegmeyer
+6290 = Sieglinde
+6291 = Sieglinde
+6310 = Shiva
+6320 = Patches
+6321 = Patches
+6370 = Oswald
+6580 = Havel
+6620 = Fair Lady
+6740 = Ciaran
+# Same model for both merchants; the spawns tell them apart (Burg by the Taurus Demon, Lower Burg
+# by the Capra Demon).
+251000 = Female Undead Merchant
+251001 = Undead Merchant
+264000 = Andre
+275000 = Anastacia
+286001 = Giant Blacksmith
+292000 = Vamos
+409000 = Marvelous Chester
+411000 = Gough
+414000 = Elizabeth
+531000 = Gwynevere
+533000 = Frampt
+533001 = Kaathe
+536100 = Alvina
+223100 = Demon Firesage

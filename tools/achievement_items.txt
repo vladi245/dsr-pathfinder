@@ -1,0 +1,56 @@
+﻿# Items that count toward the item achievements. Spells are found automatically from the game's
+# own spell list; this file only lists the Knight's Honor weapons and shields, by in-game name.
+# Source: darksouls.wikidot.com/rare-weapons (base game only; DLC weapons aren't required).
+# Some guides also list Demon's Catalyst; add it here if you want to be safe.
+#
+# "Name = id, id" pins a name to specific weapon IDs, for names the game abbreviates or shares
+# between variants (the Cursed Greatsword of Artorias has the same display name as the normal one).
+
+[Knight's Honor]
+Moonlight Butterfly Horn
+Crystal Ring Shield
+Quelaag's Furysword
+Chaos Blade
+Greatsword of Artorias (Cursed) = 311000, 312000
+Greatsword of Artorias = 307000
+Greatshield of Artorias
+Golem Axe
+Dragon Bone Fist
+Lifehunt Scythe
+Dragonslayer Spear
+Smough's Hammer
+Darkmoon Bow
+Tin Darkmoon Catalyst
+Great Lord Greatsword
+Drake Sword
+Dragon King Greataxe
+Priscilla's Dagger
+Moonlight Greatsword
+Dragon Greatsword
+Gravelord Sword
+Dark Hand
+Black Knight Sword
+Black Knight Greatsword
+Black Knight Greataxe
+Black Knight Halberd
+Black Knight Shield
+Channeler's Trident
+Crescent Axe
+Crest Shield
+Giant's Halberd
+Silver Knight Straight Sword = 208000
+Silver Knight Spear
+Silver Knight Shield
+Stone Greatsword
+Stone Greatshield
+Grant
+Sanctus
+Dragon Crest Shield
+Havel's Greatshield
+Dragon Tooth
+Dragonslayer Greatbow
+Velka's Rapier
+Astora's Straight Sword
+Bloodshield
+Black Iron Greatshield
+Effigy Shield

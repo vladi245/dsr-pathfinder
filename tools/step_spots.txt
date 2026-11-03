@@ -1,0 +1,91 @@
+# Spots for walkthrough steps that don't name anything the game data can find on its own.
+#   step id = NAME [in MAP]                 a character, item or object (<o1465> = object model 1465)
+#   step id = bonfire [near NAME] [in MAP]  the bonfire in MAP (or NAME's map) closest to NAME
+# NAME can also be a position "x, y, z". Worked out from the step text, wiki pages and the map data.
+
+# Firelink lift-room door: the elevator down to New Londo Ruins.
+wt-firelink-shrine-5 = <o1465>
+# Sunlight Altar: the bonfire at the Parish end of the Hellkite bridge, by the entrance tower's Black Knight.
+wt-undead-burg-20 = bonfire near 13.58, 32.47, -8.65 in m10_01_00_00
+wt-new-game-plus-and-beyond-1 = bonfire near 13.58, 32.47, -8.65 in m10_01_00_00
+wt-undead-parish-11 = Anastacia
+# "Speak with Siegmeyer outside Sen's Fortress": his first spot, by the fortress gate.
+wt-undead-parish-9 = Siegmeyer in m15_00_00_00
+# The first bell is at the top of the tower where Oswald stands.
+wt-undead-parish-17 = Oswald
+wt-lower-undead-burg-6 = Capra Demon in m10_01_00_00
+wt-depths-17 = Gaping Dragon
+# Shiva waits by the waterwheel lift.
+wt-blighttown-and-quelaag-s-domain-21 = Shiva in m14_00_00_00
+wt-blighttown-and-quelaag-s-domain-27 = <o4560>
+wt-blighttown-and-quelaag-s-domain-28 = <o4560>
+# Eingyi sits in front of the Daughter of Chaos (the Fair Lady).
+wt-blighttown-and-quelaag-s-domain-29 = Fair Lady
+wt-blighttown-and-quelaag-s-domain-30 = Fair Lady
+wt-blighttown-and-quelaag-s-domain-31 = Fair Lady
+wt-blighttown-and-quelaag-s-domain-32 = Fair Lady
+wt-blighttown-and-quelaag-s-domain-33 = bonfire near Fair Lady
+wt-blighttown-and-quelaag-s-domain-38 = bonfire in m10_02_00_00
+wt-darkroot-garden-1 = Great Feline
+wt-darkroot-garden-19 = Petrus in m10_02_00_00
+# The Iron Golem's arena is where the bat demons carry you to Anor Londo.
+wt-sen-s-fortress-30 = Iron Golem
+wt-anor-londo-4 = Gargoyle in m15_01_00_00
+wt-anor-londo-8 = Gargoyle in m15_01_00_00
+wt-anor-londo-28 = Giant Blacksmith
+wt-anor-londo-37 = Gwynevere
+wt-anor-londo-40 = Knight Lautrec in m15_01_00_00
+# The crow nest on Firelink's roof (see place_overrides.txt) carries you back to the asylum.
+wt-anor-londo-46 = Giant Crow
+wt-northern-undead-asylum-revisited-1 = Giant Crow
+wt-northern-undead-asylum-revisited-2 = Asylum Demon
+# Back to Firelink: curl up in the asylum's crow nest, region "event カラスの巣（まるくなれる範囲）".
+wt-northern-undead-asylum-revisited-8 = 2.7, 212.0, -96.2
+wt-new-londo-ruins-and-the-abyss-22 = Kaathe
+wt-the-great-hollow-7 = bonfire near Hydra in m13_02_00_00
+wt-ash-lake-1 = bonfire near Hydra in m13_02_00_00
+wt-ash-lake-6 = Stone Dragon
+wt-ash-lake-8 = Stone Dragon
+wt-ash-lake-9 = Stone Dragon
+# Anor Londo's first bonfire is the one the Darkmoon Knightess sits by.
+wt-ash-lake-10 = bonfire near Darkmoon Knightess
+# The Archives are entered through the passage behind Gwynevere.
+wt-painted-world-of-ariamis-34 = bonfire near Gwynevere in m17_00_00_00
+wt-the-duke-s-archives-2 = bonfire near Gwynevere in m17_00_00_00
+wt-crystal-cave-18 = Giant Blacksmith
+wt-crystal-cave-19 = bonfire near Ceaseless Discharge in m14_01_00_00
+wt-demon-ruins-1 = bonfire near Ceaseless Discharge in m14_01_00_00
+wt-demon-ruins-16 = bonfire near Centipede Demon in m14_01_00_00
+wt-lost-izalith-21 = Bed of Chaos
+# The Gravelord coffin in the Catacombs carries you to Nito.
+wt-the-catacombs-15 = <o3060> in m13_00_00_00
+wt-the-catacombs-16 = <o3060> in m13_00_00_00
+wt-the-catacombs-17 = <o3060> in m13_00_00_00
+# Bridge switches: the generator takes the one on the way.
+wt-the-catacombs-8 = <o3011>
+wt-the-catacombs-10 = <o3011>
+wt-miscellaneous-tasks-17 = Dark Sun Gwyndolin
+wt-new-game-plus-preparation-7 = Domhnall in m10_02_00_00
+wt-new-game-plus-preparation-10 = bonfire in m10_02_00_00
+wt-chasm-of-the-abyss-20 = bonfire in m10_02_00_00
+# The Firelink Altar is where Frampt waits.
+wt-kiln-of-the-first-flame-1 = Frampt
+# Siegmeyer waits outside Sen's Fortress gate.
+wt-sen-s-fortress-1 = Siegmeyer in m15_00_00_00
+# You wake in the Archives prison tower, where Logan is locked up.
+wt-the-duke-s-archives-9 = Logan in m17_00_00_00
+wt-the-duke-s-archives-18 = Logan in m17_00_00_00
+wt-sanctuary-garden-oolacile-sanctuary-and-royal-wood-1 = Dusk of Oolacile in m12_00_00_01
+wt-kiln-of-the-first-flame-2 = bonfire in m18_00_00_00
+# Snuggly's nest: the asylum has two nest objects (o8550) past the boss arena. The big one is where
+# the crow drops you; Snuggly's is the small one a little lower (wiki: "a bit downwards").
+wt-miscellaneous-tasks-5 = -11.2, 200.7, -69.0
+wt-miscellaneous-tasks-6 = -11.2, 200.7, -69.0
+wt-miscellaneous-tasks-7 = -11.2, 200.7, -69.0
+wt-miscellaneous-tasks-8 = -11.2, 200.7, -69.0
+wt-miscellaneous-tasks-9 = -11.2, 200.7, -69.0
+wt-new-game-plus-preparation-5 = -11.2, 200.7, -69.0
+# The Catacombs bonfire on the way in (of the map's bonfires, the one most on the way).
+wt-lost-izalith-26 = bonfire in m13_00_00_00
+# "Visit Shiva in Blighttown": his shop spot, not Darkroot where you join.
+wt-darkroot-garden-21 = Shiva in m14_00_00_00

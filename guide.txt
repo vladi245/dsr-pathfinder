@@ -3377,6 +3377,14 @@ text = Ensure you have enough poison and toxin cures.
 id = wt-depths-20
 title = Depths (20/20)
 text = Unlock the entrance to Blighttown.
+path = -208.29, -95.22, -21.72
+path = -209.89, -95.22, -21.32
+path = -211.90, -95.22, -23.22
+path = -212.07, -95.22, -23.83
+path = -212.97, -95.21, -25.09
+path = -214.69, -95.18, -25.95
+path = -215.07, -95.15, -25.45
+goal = -215.70, -95.36, -25.92
 
 # ===== Blighttown and Quelaag's Domain =====
 
@@ -3384,13 +3392,8 @@ text = Unlock the entrance to Blighttown.
 id = wt-blighttown-and-quelaag-s-domain-1
 title = Blighttown and Quelaag's Domain (1/42)
 text = Carefully descend through Blighttown while eliminating Blowdart Snipers.
-path = -208.29, -95.22, -21.72
-path = -209.89, -95.22, -21.32
-path = -211.90, -95.22, -23.22
-path = -212.07, -95.22, -23.83
-path = -212.97, -95.21, -25.09
-path = -216.74, -95.12, -26.57
-path = -218.03, -95.15, -30.69
+path = -215.95, -95.13, -25.95
+path = -218.98, -95.15, -31.50
 path = -220.11, -95.15, -31.97
 path = -222.42, -95.14, -34.49
 path = -227.20, -95.14, -36.60

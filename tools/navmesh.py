@@ -29,6 +29,23 @@ MIN_REGION = 30  # triangles; smaller pieces connected to nothing aren't somewhe
 PENALTY = {"walk": 0.0, "seam": 0.0, "gap": 4.0, "drop": 6.0}
 
 
+def _load_blocked_drops():
+    """Drops that pass through a wall (tools/blocked_drops.txt). The meshes have floors, not
+    walls, so a floor just behind a wall looks like a ledge to drop off; these are left out."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "blocked_drops.txt")
+    out = []
+    if os.path.exists(path):
+        for line in open(path, encoding="utf-8"):
+            line = line.split("#", 1)[0].strip()
+            if line:
+                out.append(tuple(float(v) for v in line.split(",")))
+    return out
+
+
+BLOCKED_DROPS = _load_blocked_drops()
+BLOCKED_RADIUS = 2.0  # metres around a blocked drop's top
+
+
 def read_nvm(data):
     """Returns (vertices, triangles) where a triangle is (v1, v2, v3, n1, n2, n3); n = -1 if open."""
     _version, vcount, voff, tcount, toff = struct.unpack_from("<5i", data, 0)
@@ -114,6 +131,8 @@ class World:
                     self.open_edges.append((base + i, edge))
 
     def _link(self, a, b, kind, portal):
+        if kind == "drop" and any(math.dist(portal[0], q) <= BLOCKED_RADIUS for q in BLOCKED_DROPS):
+            return
         cost = math.dist(self.pos[a], self.pos[b]) + PENALTY[kind]
         self.links[a].append((b, cost, kind, portal))
 

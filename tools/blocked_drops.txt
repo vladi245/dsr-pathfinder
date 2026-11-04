@@ -1,0 +1,6 @@
+# Drops the route generator must not use: they pass through a wall. The navmeshes hold floors,
+# not walls, so a floor just beyond a wall looks like a ledge you could drop to. One per line:
+# the top of the drop (x, y, z, as a route's point there); drops starting within 2 m are left out.
+
+# Depths: from the stairs down to the Heavy Crossbow's corridor, through the wall (step 93).
+-161.64, -91.60, -17.41

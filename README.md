@@ -31,16 +31,15 @@ DSR Pathfinder exists for one thing: getting every achievement in Dark Souls Rem
 (Steam, PC), the **100% achievements / platinum trophy** run. It walks you through a complete 100% walkthrough step by step: every spell for Wisdom of a Sage, Bond of a Pyromancer and Prayer of a Maiden, every weapon for Knight's Honor, every covenant, boss and ending, in an order that doesn't miss anything along the way.
 
 It shows the current step in a panel at the top right, and lays the walking route on the ground
-as a band of light, from your feet to the next destination, with a beacon over the destination
-(distance and height). When the destination is off screen, an arrow at the screen edge points to it. Until the camera is found, a compass at the top center points the way instead.
+as a band of light, from your feet to the next destination, with a beacon over the destination. When the destination is off screen, an arrow at the screen edge points to it. Until the camera is found, a compass at the top center points the way instead.
 
 The trail is drawn **inside the game's own frames**: the app loads a small renderer
 (`DSRPathfinderHook-*.dll`) into the game, which hooks Direct3D 11's frame presentation and paints
 the path onto the actual floor using the game's depth buffer. It follows stairs and slopes,
 moves exactly with the camera, and walls and enemies in front of it cover it. Everything else is
 read from the game's memory (your position, the camera and event flags); nothing in the game is
-changed. Set `in_world = 0` in `config.ini` for an overlay that only reads memory; the trail is
-then drawn in the overlay window instead.
+changed. Untick **Trail → Draw it inside the game** in the tray menu for an overlay that only reads
+memory; the trail is then drawn in the overlay window instead.
 
 **Play offline** while using it. Any tool attached to a From Software game while you're online
 carries some risk, more so one that loads into the game. You still get the achievements even if you are playing in offline mode.
@@ -55,6 +54,21 @@ carries some risk, more so one that loads into the game. You still get the achie
    exclusive-fullscreen game. The overlay only shows while the game window has focus.
 
 Windows may warn about an unknown app the first time (**More info → Run anyway**): that is jsut because the exe isn't signed.
+
+### Settings
+
+Everything you'd want to change is in the **tray icon's menu** (right-click it), and takes effect
+right away:
+
+- **Trail**: show or hide it, pick its style, draw it inside the game or in the overlay window,
+  and lay it on the ground behind walls or flat on top.
+- **Compass**: when it shows (only without the trail, always or never), and recalibrate it.
+- **Calm mode**: the guide steps back while you follow the route.
+- **Start the game with the app.**
+
+The menu saves your choices to `config.ini`. A few rarely needed numbers live only there
+(**Edit the settings file...** in the menu opens it): `camera_fov`, `waypoint_radius`,
+`arrow_mirror`. Edits to the file apply as soon as you save it.
 
 Your files (settings, your place in the guide, waypoints you record, a log) are in
 `%APPDATA%\DSR Pathfinder`; the icon's menu opens the folder and the settings. A newer version of
@@ -78,15 +92,14 @@ again. F11 shows the camera status.
 The game's facing-angle convention isn't documented, so the overlay learns it. When you first load
 in, the panel says *"Calibrating compass…"*. **Run in a straight line for a few seconds** (a
 couple of directions helps). The overlay then shows "Compass calibrated" and saves the result to
-`config.ini`. Shift+F11 redoes it.
+`config.ini`. **Compass → Recalibrate** in the tray menu (or Shift+F11) redoes it.
 
-If the arrow turns the **wrong way** when you turn, set `arrow_mirror = 1` in `config.ini` and
-restart.
+If the arrow turns the **wrong way** when you turn, set `arrow_mirror = 1` in `config.ini`.
 
 ### Trail style
 
-`trail_style` in `config.ini` picks how the trail looks. Everything is pinned to the route, so it
-doesn't slide along with you.
+**Trail** in the tray menu picks how the trail looks (it's `trail_style` in `config.ini`).
+Everything is pinned to the route, so it doesn't slide along with you.
 
 | `trail_style` | Look |
 |---|---|
@@ -97,9 +110,10 @@ doesn't slide along with you.
 | `fireflies` | sparse lights that fade in, wander, drift forward and fade out |
 | `line` | a solid line (drawn by the overlay window) |
 
-`stream` needs the in-game renderer; without it (`in_world = 0`, or if it can't load) it shows as
-`pulse`. Where something hides the path, a faint ghost of it shows through, so you don't lose it.
-`occlusion = 0` turns the depth buffer off: the band is then drawn flat along the route.
+`stream` needs the in-game renderer; without it (**Draw it inside the game** unticked, or if it
+can't load) it shows as `pulse`. Where something hides the path, a faint ghost of it shows
+through, so you don't lose it. Unticking **Lay it on the ground, behind walls** turns the depth
+buffer off: the band is then drawn flat along the route.
 
 ### Calm mode
 
@@ -107,8 +121,8 @@ So the guide doesn't take over the screen, it steps back while you're simply fol
 walking along the route, the trail softens and the step panel dims to the area and instruction.
 Stand still for a moment, arrive, start a new step or leave the route, and it all comes back in
 full. The trail starts a couple of metres ahead of you, is clear for the next 30 m and then fades
-out, while the beacon keeps marking the destination. Set `calm = 0` in `config.ini` to keep everything at full
-strength.
+out, while the beacon keeps marking the destination. Untick **Calm mode** in the tray menu to keep
+everything at full strength.
 
 ## Hotkeys (only while the game is focused)
 
@@ -210,14 +224,14 @@ the step's flag, which is useful for checking an ID you found.
 
 - **"Finding the camera…" never goes away:** turn the camera a full half circle while standing
   still, not locked on. If it still isn't found, F11 shows how many candidates the scan found;
-  please report that line. Set `trail = 0` in `config.ini` to use the compass meanwhile.
+  please report that line. Untick **Trail → Show the trail** to use the compass meanwhile.
 - **The trail floats over the ground or slides as you turn:** the field of view is off. F11's
   camera lines show the one in use and the candidates found; try `camera_fov = 43` (or nearby
   values) in `config.ini`.
 - **The trail is a flat band over everything, not on the floor:** the renderer has no depth. F11's
   in-world lines say why ("no depth", "occlusion needs the game's projection"); please report them.
-- **The game crashes or the trail misbehaves after an update:** set `in_world = 0` in
-  `config.ini`. The overlay window then draws the trail, as a read-only overlay.
+- **The game crashes or the trail misbehaves after an update:** untick **Trail → Draw it inside
+  the game** in the tray menu. The overlay window then draws the trail, as a read-only overlay.
 - **Console says "Game found, waiting for it to finish starting…" forever:** the memory patterns
   didn't match, probably because of a game update. Please report the game version.
 - **Overlay never appears:** the game is in exclusive fullscreen, or the overlay isn't the

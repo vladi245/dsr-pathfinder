@@ -65,6 +65,9 @@ public:
 
 private:
     void loadGuide();
+    void applySettings();
+    void saveConfig();
+    void recalibrate();
     void handleTray();
     void launchGame();
     void goToStep(size_t s, bool forward);
@@ -99,7 +102,9 @@ private:
     LiveRoute live_;
     Tray tray_;
     InWorld inWorld_;  // the trail drawn inside the game's own frames
-    bool inWorldOn_ = true, occlusion_ = true;
+    bool inWorldOn_ = false, inWorldStarted_ = false, occlusion_ = true;
+    fs::file_time_type configTime_{};  // config.ini as last read, to notice edits by hand
+    uint64_t nextConfigCheck_ = 0;
     bool quit_ = false, launchOnStart_ = true, launched_ = false;
 
     size_t step_ = 0;
@@ -133,29 +138,17 @@ bool App::init() {
     appdata::prepare(dir_);
     if (!config_.load(dir_ / "config.ini")) std::printf("config.ini missing, using defaults\n");
     progress_.load(dir_ / "progress.txt");  // created on first save
-    launchOnStart_ = config_.getInt("launch_game", 1) != 0;
-    inWorldOn_ = config_.getInt("in_world", 1) != 0;
-    occlusion_ = config_.getInt("occlusion", 1) != 0;
-    if (inWorldOn_ && !inWorld_.start()) {
-        std::printf("In-world trail unavailable: the overlay window draws it\n");
-        inWorldOn_ = false;
+    // Settings from before 1.1 have no in_world line. Their trail style was the default of the
+    // time, so move it to today's (stream, drawn in game); a style someone picked stays.
+    if (config_.get("in_world", "?") == "?") {
+        std::string old = config_.get("trail_style", "pulse");
+        if (old == "pulse" || old == "particles") config_.set("trail_style", "stream");
+        config_.set("in_world", "1");
+        config_.set("occlusion", "1");
+        if (config_.save()) std::printf("Settings updated for 1.1: trail_style %s, in_world 1\n",
+                                        config_.get("trail_style").c_str());
     }
-
-    radius_ = config_.getFloat("waypoint_radius", 4.0f);
-    mirror_ = config_.getInt("arrow_mirror", 0) != 0;
-    trailOn_ = config_.getInt("trail", 1) != 0;
-    calmOn_ = config_.getInt("calm", 1) != 0;
-    std::string style = config_.get("trail_style", "stream");
-    particles_ = style != "line";
-    // stream unless another style is named (older settings say "particles", which was pulse).
-    moteStyle_ = style == "embers" ? kMoteEmbers : style == "wisps" ? kMoteWisps
-               : style == "fireflies" ? kMoteFireflies : style == "pulse" || style == "particles" ? kMotePulse
-               : kMoteStream;
-    std::string compass = config_.get("compass", "auto");
-    compassMode_ = compass == "1" ? 1 : compass == "0" ? 0 : -1;
-    float fovDeg = config_.getFloat("camera_fov", 0);
-    forceFov_ = fovDeg > 0;
-    fov_ = (forceFov_ ? fovDeg : 45.0f) * 3.14159265f / 180;
+    applySettings();
     int sign = config_.getInt("heading_sign", 0);
     if (sign == 1 || sign == -1) calib_.set(sign, config_.getFloat("heading_offset", 0));
 
@@ -180,6 +173,66 @@ bool App::init() {
     return true;
 }
 
+// Reads the settings from config.ini: at start, after a change from the tray menu, and when the
+// file is edited by hand while the app runs.
+void App::applySettings() {
+    std::error_code ec;
+    configTime_ = fs::last_write_time(dir_ / "config.ini", ec);
+    launchOnStart_ = config_.getInt("launch_game", 1) != 0;
+    bool wasInWorld = inWorldOn_;
+    inWorldOn_ = config_.getInt("in_world", 1) != 0;
+    occlusion_ = config_.getInt("occlusion", 1) != 0;
+    if (inWorldOn_ && !inWorldStarted_) {
+        inWorldStarted_ = inWorld_.start();
+        if (!inWorldStarted_) std::printf("In-world trail unavailable: the overlay window draws it\n");
+    }
+    inWorldOn_ = inWorldOn_ && inWorldStarted_;
+    if (wasInWorld && !inWorldOn_) inWorld_.publish(OverlayView{}, {}, false, occlusion_, GetTickCount64());
+
+    radius_ = config_.getFloat("waypoint_radius", 4.0f);
+    mirror_ = config_.getInt("arrow_mirror", 0) != 0;
+    trailOn_ = config_.getInt("trail", 1) != 0;
+    calmOn_ = config_.getInt("calm", 1) != 0;
+    std::string style = config_.get("trail_style", "stream");
+    particles_ = style != "line";
+    // stream unless another style is named (older settings say "particles", which was pulse).
+    moteStyle_ = style == "embers" ? kMoteEmbers : style == "wisps" ? kMoteWisps
+               : style == "fireflies" ? kMoteFireflies : style == "pulse" || style == "particles" ? kMotePulse
+               : kMoteStream;
+    std::string compass = config_.get("compass", "auto");
+    compassMode_ = compass == "1" ? 1 : compass == "0" ? 0 : -1;
+    float fovDeg = config_.getFloat("camera_fov", 0);
+    forceFov_ = fovDeg > 0;
+    fov_ = (forceFov_ ? fovDeg : 45.0f) * 3.14159265f / 180;
+    lastFrameKey_.clear();  // redraw with the new settings
+
+    // What the tray's settings menus tick.
+    static const char* kStyleNames[] = {"embers", "pulse", "wisps", "fireflies", "stream"};
+    Tray::Settings ts;
+    ts.trail = trailOn_;
+    ts.inWorld = inWorldOn_;
+    ts.occlusion = occlusion_;
+    ts.calm = calmOn_;
+    ts.launchGame = launchOnStart_;
+    ts.style = particles_ ? kStyleNames[moteStyle_] : "line";
+    ts.compass = compassMode_ == 1 ? "1" : compassMode_ == 0 ? "0" : "auto";
+    tray_.setSettings(ts);
+}
+
+// Saves config.ini, remembering its new time so our own write isn't taken for an edit by hand.
+void App::saveConfig() {
+    config_.save();
+    std::error_code ec;
+    configTime_ = fs::last_write_time(dir_ / "config.ini", ec);
+}
+
+void App::recalibrate() {
+    calib_.reset();
+    config_.set("heading_sign", "0");
+    saveConfig();
+    notify(L"Recalibrating compass: run in a straight line");
+}
+
 void App::launchGame() {
     // Through Steam, which starts it the way the library's Play button does.
     ShellExecuteW(nullptr, L"open", L"steam://rungameid/570940", nullptr, nullptr, SW_SHOWNORMAL);
@@ -198,7 +251,25 @@ void App::handleTray() {
         case Tray::kOpenFolder: ShellExecuteW(nullptr, L"open", dir_.c_str(), nullptr, nullptr, SW_SHOWNORMAL); break;
         case Tray::kLaunchGame: launchGame(); break;
         case Tray::kQuit: quit_ = true; break;
+        case Tray::kRecalibrate: recalibrate(); break;
+        case Tray::kSetting:
+            // Picked in the menu: saved to config.ini and in effect right away.
+            config_.set(tray_.settingKey(), tray_.settingValue());
+            saveConfig();
+            applySettings();
+            break;
         default: break;
+    }
+    // Edited by hand while the app runs: take it in (checked about once a second).
+    uint64_t now = GetTickCount64();
+    if (now >= nextConfigCheck_) {
+        nextConfigCheck_ = now + 1000;
+        std::error_code ec;
+        auto t = fs::last_write_time(dir_ / "config.ini", ec);
+        if (!ec && t != configTime_ && config_.load(dir_ / "config.ini")) {
+            applySettings();
+            notify(L"Settings reloaded");
+        }
     }
 }
 
@@ -235,10 +306,7 @@ void App::handleKeys(const PlayerState& ps) {
     if (kToggle.pressed()) visible_ = !visible_;
     if (kDebug.pressed()) {
         if (shiftHeld()) {
-            calib_.reset();
-            config_.set("heading_sign", "0");
-            config_.save();
-            notify(L"Recalibrating compass: run in a straight line");
+            recalibrate();
         } else {
             debug_ = !debug_;
         }
@@ -458,7 +526,7 @@ bool App::tick() {
     if (calib_.done() && config_.getInt("heading_sign", 0) == 0) {
         config_.set("heading_sign", std::to_string(calib_.sign()));
         config_.set("heading_offset", std::to_string(calib_.offset()));
-        config_.save();
+        saveConfig();
         notify(L"Compass calibrated");
     }
 

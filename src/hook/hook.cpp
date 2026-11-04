@@ -1013,6 +1013,9 @@ void onPresent(IDXGISwapChain* sc) {
         g_block->owner != g_token)
         return;
     g_block->hookVersion = trailshare::kVersion;
+    // Alive, even if this one frame can't draw (mid-write, camera slot in use): the app must not
+    // switch to its own trail for a frame or two, which shows as a flash of another style.
+    g_block->hookMs = now;
     if (now - g_block->appMs > trailshare::kAppTimeoutMs) return;
     trailshare::Frame& f = g_frame;
     if (!trailshare::read(*g_block, f)) {
@@ -1046,7 +1049,6 @@ void onPresent(IDXGISwapChain* sc) {
         haveProj = true;  // cam.xs and ys stay the app's current ones
         projFrom = "kept";
     }
-    g_block->hookMs = now;
     if (!f.draw || f.count < 2) return;
 
     DXGI_SWAP_CHAIN_DESC scd;

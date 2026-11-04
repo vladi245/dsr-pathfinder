@@ -18,7 +18,7 @@ constexpr uint32_t kMaxPoints = 4096;
 // hanging) takes the trail away.
 constexpr uint64_t kAppTimeoutMs = 500;
 // The app leaves the motes to the renderer while the renderer answered within this long.
-constexpr uint64_t kHookTimeoutMs = 400;
+constexpr uint64_t kHookTimeoutMs = 1000;  // game hitches stay in game, not a flash of the overlay's
 
 // What the app sends each tick.
 struct Frame {

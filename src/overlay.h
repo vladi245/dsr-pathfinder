@@ -6,13 +6,12 @@
 #include <vector>
 
 #include "camera.h"
+#include "motes.h"
 
 namespace Gdiplus {
 class Graphics;
 }
 
-// How the motes move (config trail_style).
-enum MoteStyle { kMoteEmbers, kMotePulse, kMoteWisps, kMoteFireflies };
 
 // Everything the overlay draws in one frame. Built by main, drawn by Overlay.
 struct OverlayView {
@@ -32,6 +31,7 @@ struct OverlayView {
     float goalLeft = 0;         // along the trail
     bool particles = true;      // motes; false = a solid line
     int moteStyle = 0;          // MoteStyle
+    bool motesInGame = false;   // the in-game renderer draws the motes (see inworld.h)
     float trailBase = 0;        // distance along the step's route of trail[1], to pin motes in place
     float timeSec = 0;          // drives the motes' drift
     // 1 = fully shown; lower while you're calmly following the route (see main.cpp).

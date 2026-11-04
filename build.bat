@@ -21,14 +21,20 @@ cd /d "%~dp0"
 rem The guide and navmesh are built into the exe, so they have to exist first.
 if not exist guide.txt goto noguide
 if not exist navmesh.bin goto noguide
-if not exist build mkdir build
+if not exist build\hook mkdir build\hook
+rem The in-game renderer first: it goes inside the exe too.
+cl /nologo /std:c++17 /O2 /EHsc /W4 /permissive- /utf-8 /DUNICODE /D_UNICODE /DNOMINMAX /D_CRT_SECURE_NO_WARNINGS ^
+   /LD /Fo"build\\hook\\" /Fe"build\\DSRPathfinderHook.dll" ^
+   src\hook\hook.cpp src\motes.cpp src\camera.cpp src\memory.cpp ^
+   /link d3d11.lib dxgi.lib d3dcompiler.lib user32.lib
+if errorlevel 1 exit /b 1
 rc /nologo /fo build\app.res src\app.rc
 if errorlevel 1 exit /b 1
 rem A windowed app: no console, it lives in the notification area.
 cl /nologo /std:c++17 /O2 /EHsc /W4 /permissive- /utf-8 /DUNICODE /D_UNICODE /DNOMINMAX /D_CRT_SECURE_NO_WARNINGS ^
    /Fo"build\\" /Fe"DSRPathfinder.exe" ^
    src\main.cpp src\game.cpp src\memory.cpp src\guide.cpp src\nav.cpp src\overlay.cpp src\textfile.cpp ^
-   src\camera.cpp src\route.cpp src\appdata.cpp src\tray.cpp build\app.res ^
+   src\camera.cpp src\route.cpp src\appdata.cpp src\tray.cpp src\motes.cpp src\inworld.cpp build\app.res ^
    /link /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup user32.lib gdi32.lib gdiplus.lib winmm.lib shell32.lib ole32.lib
 if errorlevel 1 exit /b 1
 echo Built DSRPathfinder.exe

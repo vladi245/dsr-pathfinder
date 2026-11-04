@@ -89,3 +89,19 @@ wt-new-game-plus-preparation-5 = -11.2, 200.7, -69.0
 wt-lost-izalith-26 = bonfire in m13_00_00_00
 # "Visit Shiva in Blighttown": his shop spot, not Darkroot where you join.
 wt-darkroot-garden-21 = Shiva in m14_00_00_00
+# The two archers before the Taurus Demon are the crossbow Hollow Soldiers (NpcParam 255002,
+# they drop the Light Crossbow) on top of the tower at the start of the bridge. The Taurus fight
+# starts from the same tower: you plunge on it from there.
+wt-undead-burg-11 = 52.5, 23.9, -120.5
+wt-undead-burg-12 = 52.5, 23.9, -120.5
+# Two Lautrecs stand in the Parish: his summon phantom for the Gargoyles (NpcParam 6590, by the
+# roof) and the one locked in the cell on the church's upper floor (6300, the Lautrec who later
+# sits at Firelink). Freeing him means the cell.
+wt-undead-parish-13 = 17.58, 44.40, 136.27
+# The Lower Undead Burg entrance: the only door in the Burg that needs the Basement Key
+# (ObjActParam 11312 on object o1312_01, by the stairs beneath the Hellkite bridge).
+wt-undead-parish-19 = -19.05, 9.46, -102.32
+# The shortcut back to the Depths bonfire (step 5's, at -120.5, -74.1, 12.2) is the door the Sewer
+# Chamber Key opens (ObjActParam 11315 on o1315_0000), on the bonfire's floor. The bonfire object
+# the step found by itself is another one, by the boss route.
+wt-depths-11 = -121.10, -74.10, -13.00

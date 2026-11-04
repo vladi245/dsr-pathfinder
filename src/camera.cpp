@@ -97,6 +97,15 @@ Camera toCamera(const Pose& p, int sign) {
 }
 }  // namespace
 
+bool cameraFromMatrix(const float* f, uint8_t kind, int sign, Camera& out) {
+    Pose p;
+    if (!decode(f, kind, p) || !(p.ax[1].y > 0)) return false;
+    out = toCamera(p, sign);
+    return true;
+}
+
+bool projectionScale(const float* f, float& xs, float& ys) { return readProjection(f, xs, ys); }
+
 bool CameraLocator::scan(DWORD pid, const Vec3& player, const std::atomic<bool>& cancel,
                          std::vector<Candidate>& cams, std::vector<Projection>& projs,
                          size_t& bytesScanned) {
@@ -135,8 +144,11 @@ bool CameraLocator::scan(DWORD pid, const Vec3& player, const std::atomic<bool>&
                     }
                 } else if (f[15] == 0 && f[0] > 0.1f) {
                     float xs, ys;
-                    if (readProjection(f, xs, ys) && projs.size() < kMaxCandidates)
-                        projs.push_back({at + off, xs, ys});
+                    if (readProjection(f, xs, ys) && projs.size() < kMaxCandidates) {
+                        Projection p{at + off, xs, ys};
+                        std::memcpy(p.m, f, sizeof p.m);
+                        projs.push_back(p);
+                    }
                 }
             }
         }
@@ -162,6 +174,7 @@ void CameraLocator::reset() {
     nextScan_ = 0;
     scans_ = 0;
     proj_ = {};
+    projValid_ = false;
     cam_.reset();
 }
 
@@ -191,24 +204,41 @@ void CameraLocator::finishScan(float aspect, uint64_t nowMs) {
     }
     tracked_ = std::move(merged);
 
-    // The main camera's projection usually exists in several copies; take the most common one.
+    // The main camera's projection usually exists in several copies; take the most common one
+    // shaped like the game's window. Shape first: shadow maps have projections of their own
+    // (square, 90 degrees, one per cube face), and there are more of those than of the camera's.
     std::map<std::pair<int, int>, std::pair<int, Projection>> groups;
     for (const Projection& p : job_->projs) {
         auto& g = groups[{static_cast<int>(std::lround(p.ys * 1000)),
                           static_cast<int>(std::lround(p.ys / p.xs * 100))}];
         if (!g.first++) g.second = p;
     }
-    int best = 0;
+    // Exactly 90 degrees is what utility cameras use (shadows, reflections), not the player's.
+    auto rank = [&](const Projection& p) {
+        bool fits = std::fabs(p.ys / p.xs - aspect) < 0.03f * aspect;
+        bool square90 = std::fabs(p.ys - 1) < 1e-3f;
+        return (fits ? 2 : 0) + (square90 ? 0 : 1);
+    };
+    int best = 0, bestRank = -1;
     float bestGap = 0;
+    candidates_.clear();
     for (auto& [key, g] : groups) {
         float gap = std::fabs(g.second.ys / g.second.xs - aspect);
-        if (g.first > best || (g.first == best && gap < bestGap)) {
+        int r = rank(g.second);
+        if (r >= 2) candidates_.push_back({2 * std::atan(1 / g.second.ys) * 180 / kPi, g.first});
+        if (r > bestRank || (r == bestRank && (g.first > best || (g.first == best && gap < bestGap)))) {
             best = g.first;
             bestGap = gap;
+            bestRank = r;
             proj_ = g.second;
         }
     }
 
+    // The scan's own copy is valid: it stands in until a read of the slot is (the game reuses it).
+    if (proj_.addr) {
+        std::memcpy(projM_, proj_.m, sizeof projM_);
+        projValid_ = true;
+    }
     job_.reset();
     nextScan_ = nowMs + (tracked_.empty() ? kRetryMs : kRescanMs);
 }
@@ -274,6 +304,8 @@ void CameraLocator::update(const Process& proc, const PlayerState& ps, float asp
     if (!forceFov && proj_.addr && proc.read(proj_.addr, f, sizeof f) && readProjection(f, xs, ys)) {
         proj_.xs = xs;
         proj_.ys = ys;
+        std::memcpy(projM_, f, sizeof projM_);
+        projValid_ = true;
     }
     if (!forceFov && proj_.addr) {
         cam_->xs = proj_.xs;
@@ -292,6 +324,15 @@ std::wstring CameraLocator::status() const {
         swprintf(buf, 160, L"locked 0x%llX kind %u%ls, fov %.1f° %ls",
                  static_cast<unsigned long long>(locked_), lockedKind_, lockedSign_ < 0 ? L" (-z)" : L"",
                  fov, cam_ && cam_->fovFound ? L"(game)" : L"(config)");
+        // The projections that fit the window, to tell which is the camera's: "43.0×3 90.0×12".
+        std::wstring list = buf;
+        list += L"\nfitting:";
+        for (size_t i = 0; i < candidates_.size() && i < 6; ++i) {
+            wchar_t c[32];
+            swprintf(c, 32, L" %.1f×%d", candidates_[i].first, candidates_[i].second);
+            list += c;
+        }
+        return list;
     } else if (job_) {
         swprintf(buf, 160, L"scanning memory (scan %d)", scans_ + 1);
     } else {

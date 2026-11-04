@@ -7,7 +7,7 @@
   <img alt="Dark Souls Remastered on Steam" src="https://img.shields.io/badge/Dark%20Souls-Remastered%20%C2%B7%20Steam-e6b062?style=flat-square&labelColor=1a1512">
   <img alt="Windows" src="https://img.shields.io/badge/platform-Windows-e6b062?style=flat-square&labelColor=1a1512">
   <img alt="C++17" src="https://img.shields.io/badge/C%2B%2B-17-e6b062?style=flat-square&labelColor=1a1512">
-  <img alt="Read-only, no memory writes" src="https://img.shields.io/badge/memory-read--only-b0d092?style=flat-square&labelColor=1a1512">
+  <img alt="Trail drawn in game with DirectX 11" src="https://img.shields.io/badge/trail-DirectX%2011-b0d092?style=flat-square&labelColor=1a1512">
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-e6b062?style=flat-square&labelColor=1a1512"></a>
 </p>
 
@@ -30,21 +30,29 @@
 DSR Pathfinder exists for one thing: getting every achievement in Dark Souls Remastered
 (Steam, PC), the **100% achievements / platinum trophy** run. It walks you through a complete 100% walkthrough step by step: every spell for Wisdom of a Sage, Bond of a Pyromancer and Prayer of a Maiden, every weapon for Knight's Honor, every covenant, boss and ending, in an order that doesn't miss anything along the way.
 
-It shows the current step in a panel at the top right, and draws the walking route as a trail
-in the game world, from your feet to the next destination, with a beacon over the destination
+It shows the current step in a panel at the top right, and lays the walking route on the ground
+as a band of light, from your feet to the next destination, with a beacon over the destination
 (distance and height). When the destination is off screen, an arrow at the screen edge points to it. Until the camera is found, a compass at the top center points the way instead.
 
-It only **reads** the game's memory (your position, the camera and event flags). It never writes to the game,
-injects code or changes anything. Still, **play offline** while using it. Any tool attached to a
-From Software game while you're online carries some risk. You still get the achievements even if you are playing in offline mode.
+The trail is drawn **inside the game's own frames**: the app loads a small renderer
+(`DSRPathfinderHook-*.dll`) into the game, which hooks Direct3D 11's frame presentation and paints
+the path onto the actual floor using the game's depth buffer. It follows stairs and slopes,
+moves exactly with the camera, and walls and enemies in front of it cover it. Everything else is
+read from the game's memory (your position, the camera and event flags); nothing in the game is
+changed. Set `in_world = 0` in `config.ini` for an overlay that only reads memory; the trail is
+then drawn in the overlay window instead.
+
+**Play offline** while using it. Any tool attached to a From Software game while you're online
+carries some risk, more so one that loads into the game. You still get the achievements even if you are playing in offline mode.
 
 ## Setup
 
 1. Download `DSRPathfinder.exe` from the [latest release](https://github.com/vladi245/dsr-pathfinder/releases/latest)
    and run it. That's the whole app: the guide and everything else are built in.
 2. If Dark Souls Remastered isn't running, the app starts it through Steam. The app is in the    hidden icons, right-click it for settings, to hide the overlay or to quit.
-3. In the game, set the screen mode to **windowed or borderless** (once). A regular window can't
-   be drawn over a true exclusive-fullscreen game. The overlay only shows while the game window has focus.
+3. In the game, set the screen mode to **windowed or borderless** (once). The trail shows in any
+   mode, but the step panel is a window over the game, and a window can't be drawn over a true
+   exclusive-fullscreen game. The overlay only shows while the game window has focus.
 
 Windows may warn about an unknown app the first time (**More info → Run anyway**): that is jsut because the exe isn't signed.
 
@@ -54,7 +62,8 @@ the app brings its newer guide and keeps the waypoints you recorded (your old co
 `guide.previous.txt`). For a portable copy instead, put a `config.ini` next to the exe: it then
 keeps everything in that folder.
 
-If you want to remove the app, just delete the appdata folder and the exe.
+If you want to remove the app, just delete the appdata folder and the exe. (The renderer DLL is in
+that folder too; while the game is running it's in use, so close the game first.)
 
 ### First run: turn the camera
 
@@ -76,24 +85,29 @@ restart.
 
 ### Trail style
 
-The trail is made of small soft lights along the route, pinned to it so they don't slide along
-with you. `trail_style` in `config.ini` picks how they move:
+`trail_style` in `config.ini` picks how the trail looks. Everything is pinned to the route, so it
+doesn't slide along with you.
 
 | `trail_style` | Look |
 |---|---|
+| `stream` (default) | a band of light painted onto the ground, with brighter edges, waves running to the destination, chevrons drifting forward and sparks rising off it; a ring on the ground marks the destination |
+| `pulse` | still lights with soft waves of light travelling towards the destination |
 | `embers` | scattered embers drifting forward, each flickering, with a short glowing tail |
-| `pulse` (default) | still lights with soft waves of light travelling towards the destination |
 | `wisps` | two strands of tiny lights spiralling along the path |
 | `fireflies` | sparse lights that fade in, wander, drift forward and fade out |
-| `line` | a solid line |
+| `line` | a solid line (drawn by the overlay window) |
+
+`stream` needs the in-game renderer; without it (`in_world = 0`, or if it can't load) it shows as
+`pulse`. Where something hides the path, a faint ghost of it shows through, so you don't lose it.
+`occlusion = 0` turns the depth buffer off: the band is then drawn flat along the route.
 
 ### Calm mode
 
 So the guide doesn't take over the screen, it steps back while you're simply following it:
-walking along the route, the trail softens to a thin line and the step panel dims to the area
-and instruction. Stand still for a moment, arrive, start a new step or leave the route, and it
-all comes back in full. The trail is clear for the next 20 m and then fades out, while the
-beacon keeps marking the destination. Set `calm = 0` in `config.ini` to keep everything at full
+walking along the route, the trail softens and the step panel dims to the area and instruction.
+Stand still for a moment, arrive, start a new step or leave the route, and it all comes back in
+full. The trail starts a couple of metres ahead of you, is clear for the next 30 m and then fades
+out, while the beacon keeps marking the destination. Set `calm = 0` in `config.ini` to keep everything at full
 strength.
 
 ## Hotkeys (only while the game is focused)
@@ -105,7 +119,7 @@ strength.
 | F8        | Remove the last waypoint of this step                   |
 | F9        | Hide / show the overlay                                 |
 | F10       | Reload `guide.txt` (edit it while playing)              |
-| F11       | Debug info (position, heading, flag state)              |
+| F11       | Debug info (position, flags, camera, in-game renderer)  |
 | Shift+F11 | Redo compass calibration                                |
 
 Your current step is saved in `progress.txt`.
@@ -127,7 +141,7 @@ flags:
 - Mentions of items you already carry ("give him the Large Ember", "buy the Residence Key",
   "with the Master Key") aren't destinations, but the person you give or buy from is.
 
-546 of the 610 walkthrough steps have a destination of their own (589 of all 654 steps). A step
+541 of the 610 walkthrough steps have a destination of their own (584 of all 654 steps). A step
 without one leads the trail on to the next step that has one.
 Achievement items the walkthrough never sends you to are added after it: farming spots, spell
 shops, boss-soul recipes and covenant rewards. That keeps the 100% list complete. Step IDs are
@@ -146,7 +160,7 @@ of up to 7 m (one way, down only); ladders are already part of the meshes. Then 
 shortest walk from each destination to the next and pulls it tight into a natural line, with a
 point every 8 m or so. The arrow follows that route instead of pointing through walls.
 
-The 703 destinations get about 25,900 route points. A route only cuts a corner where the
+The 698 destinations get about 26,100 route points. A route only cuts a corner where the
 straight line stays on one connected stretch of floor, so stairs and stacked floors keep their
 turns. A few destinations stay straight-line: the first one after a crow, painting, portal or
 bonfire warp (nothing to walk), and area changes where walking would be a huge detour. If a
@@ -197,11 +211,13 @@ the step's flag, which is useful for checking an ID you found.
 - **"Finding the camera…" never goes away:** turn the camera a full half circle while standing
   still, not locked on. If it still isn't found, F11 shows how many candidates the scan found;
   please report that line. Set `trail = 0` in `config.ini` to use the compass meanwhile.
-- **The trail floats or slides as you turn:** the field of view is off. Try `camera_fov = 43`
-  (or nearby values) in `config.ini`. A slight lag behind fast camera turns is normal for an
-  overlay window.
-- **The trail shows through walls:** expected. The overlay can't see the game's depth, so the
-  trail is drawn on top of everything, fading with distance.
+- **The trail floats over the ground or slides as you turn:** the field of view is off. F11's
+  camera lines show the one in use and the candidates found; try `camera_fov = 43` (or nearby
+  values) in `config.ini`.
+- **The trail is a flat band over everything, not on the floor:** the renderer has no depth. F11's
+  in-world lines say why ("no depth", "occlusion needs the game's projection"); please report them.
+- **The game crashes or the trail misbehaves after an update:** set `in_world = 0` in
+  `config.ini`. The overlay window then draws the trail, as a read-only overlay.
 - **Console says "Game found, waiting for it to finish starting…" forever:** the memory patterns
   didn't match, probably because of a game update. Please report the game version.
 - **Overlay never appears:** the game is in exclusive fullscreen, or the overlay isn't the
@@ -214,8 +230,15 @@ the step's flag, which is useful for checking an ID you found.
 - `src/game.cpp` finds the game's `WorldChrBase` and event-flag managers by byte-pattern scan.
   It follows `WorldChrBase → player → ChrMapData → ChrPosData` to get X/Y/Z and facing. Patterns
   and offsets come from [DSR-Gadget](https://github.com/JKAnderson/DSR-Gadget).
-- `src/overlay.cpp` draws with GDI+ into a click-through, per-pixel-alpha window laid over the
-  game's client area. It redraws only when something changes.
+- `src/overlay.cpp` draws the panel, compass and beacon with GDI+ into a click-through,
+  per-pixel-alpha window laid over the game's client area.
+- `src/hook/hook.cpp` is the in-game renderer, built into the exe and loaded into the game by
+  `src/inworld.cpp`. It hooks `IDXGISwapChain::Present`, finds the scene's depth buffer (the game
+  records its scene on deferred contexts, so their render-target binds are hooked in d3d11.dll's
+  code), reads the camera every frame and draws the trail with shaders: each pixel near the route
+  rebuilds its world position from depth and lights up if it lies on the path. The trail and the
+  camera's whereabouts come from the app through shared memory (`src/trailshare.h`).
+- `src/motes.cpp` places the lights of each trail style, for both the window and the renderer.
 - `src/camera.cpp` finds the camera without a fixed address. A background thread scans the game's
   writable memory for 4x4 rigid transforms whose eye is a few metres from the player and looking
   at them. The one that keeps doing that while you turn the camera is the camera. Its projection
@@ -230,10 +253,6 @@ the step's flag, which is useful for checking an ID you found.
   game's own PARAMDEFs), FMG text and MSB maps. `tools/build_guide.py` turns them into the guide,
   `tools/walkthrough.py` matches walkthrough steps to places in the game, and
   `tools/navmesh.py` computes walking routes over the NVM navigation meshes.
-
-## Ideas for later
-
-- Draw the trail through a DirectX 11 hook, so walls hide it and it never lags the camera.
 
 ## Credits
 

@@ -29,6 +29,12 @@ struct Camera {
     float aspect() const { return ys / xs; }
 };
 
+// The camera stored in the 16 floats at `f`, read the way the locator found it (kind and depth
+// sign, see CameraLocator::Candidate). False if it isn't a valid camera right now.
+bool cameraFromMatrix(const float* f, uint8_t kind, int sign, Camera& out);
+// The x and y projection scales of a perspective matrix, if `f` is one.
+bool projectionScale(const float* f, float& xs, float& ys);
+
 // Finds the camera's matrix in game memory without any fixed address. A background thread scans
 // the game's writable memory for 4x4 rigid transforms whose eye sits a few metres from the player
 // and looks at them. Candidates that keep doing that while the camera turns are the camera.
@@ -44,6 +50,18 @@ public:
     const std::optional<Camera>& camera() const { return cam_; }
     bool locked() const { return locked_ != 0; }
     std::wstring status() const;
+    // Where the locked camera and its projection live in the game, for the in-game renderer,
+    // which reads them itself every frame. addr 0 = none.
+    struct Source {
+        uintptr_t camAddr = 0, projAddr = 0;
+        uint8_t kind = 0;
+        int sign = 1;
+        const float* proj = nullptr;  // the last valid projection matrix read, or null
+    };
+    Source source() const {
+        bool fov = cam_ && cam_->fovFound;
+        return {locked_, fov ? proj_.addr : 0, lockedKind_, lockedSign_, fov && projValid_ ? projM_ : nullptr};
+    }
 
     // A candidate matrix: where it is and how to read it.
     struct Candidate {
@@ -54,6 +72,7 @@ public:
     struct Projection {
         uintptr_t addr = 0;
         float xs = 0, ys = 0;
+        float m[16] = {};  // the whole matrix as the scan found it
     };
     // The scan itself, exposed for the offline test. Blocks; returns false if cancelled.
     static bool scan(DWORD pid, const Vec3& player, const std::atomic<bool>& cancel,
@@ -88,5 +107,8 @@ private:
     size_t lastScanBytes_ = 0;
     uint64_t lastScanMs_ = 0;
     Projection proj_;
+    float projM_[16] = {};  // its whole matrix when last valid (the slot is reused within a frame)
+    bool projValid_ = false;
+    std::vector<std::pair<float, int>> candidates_;  // fitting projections: fov, copies (for F11)
     std::optional<Camera> cam_;
 };

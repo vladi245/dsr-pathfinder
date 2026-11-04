@@ -4,3 +4,4 @@
 #define IDR_GUIDE 101    // guide.txt
 #define IDR_NAVMESH 102  // navmesh.bin
 #define IDR_CONFIG 103   // config.ini, the default settings
+#define IDR_HOOK 104     // DSRPathfinderHook.dll, the in-game renderer (src/hook)

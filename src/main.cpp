@@ -1,5 +1,6 @@
 // DSR Pathfinder: an achievement-guide overlay for Dark Souls Remastered.
-// Reads the player's position from the game (read-only) and points at the next guide waypoint.
+// Reads the player's position from the game and points at the next guide waypoint. The trail is
+// drawn inside the game's frames by a small renderer DLL (src/hook) when in_world is on.
 
 #include <windows.h>
 #include <shellapi.h>
@@ -17,6 +18,7 @@
 #include "camera.h"
 #include "game.h"
 #include "guide.h"
+#include "inworld.h"
 #include "nav.h"
 #include "overlay.h"
 #include "resource.h"
@@ -96,6 +98,8 @@ private:
     NavMesh nav_;       // the game's navigation meshes, for routing from where you are
     LiveRoute live_;
     Tray tray_;
+    InWorld inWorld_;  // the trail drawn inside the game's own frames
+    bool inWorldOn_ = true, occlusion_ = true;
     bool quit_ = false, launchOnStart_ = true, launched_ = false;
 
     size_t step_ = 0;
@@ -113,7 +117,7 @@ private:
     // Calm mode: the overlay steps back while you're walking the route and comes forward when
     // you stop, arrive, change step or leave the route.
     bool calmOn_ = true, offRoute_ = false, particles_ = true;
-    int moteStyle_ = kMotePulse;
+    int moteStyle_ = kMoteStream;
     uint64_t stepShownMs_ = 0, stillSinceMs_ = 0, lastCalmMs_ = 0;
     Vec3 anchor_{};  // where you were when you last counted as moving
     float trailStrength_ = 1, panelStrength_ = 1;
@@ -130,16 +134,23 @@ bool App::init() {
     if (!config_.load(dir_ / "config.ini")) std::printf("config.ini missing, using defaults\n");
     progress_.load(dir_ / "progress.txt");  // created on first save
     launchOnStart_ = config_.getInt("launch_game", 1) != 0;
+    inWorldOn_ = config_.getInt("in_world", 1) != 0;
+    occlusion_ = config_.getInt("occlusion", 1) != 0;
+    if (inWorldOn_ && !inWorld_.start()) {
+        std::printf("In-world trail unavailable: the overlay window draws it\n");
+        inWorldOn_ = false;
+    }
 
     radius_ = config_.getFloat("waypoint_radius", 4.0f);
     mirror_ = config_.getInt("arrow_mirror", 0) != 0;
     trailOn_ = config_.getInt("trail", 1) != 0;
     calmOn_ = config_.getInt("calm", 1) != 0;
-    std::string style = config_.get("trail_style", "pulse");
+    std::string style = config_.get("trail_style", "stream");
     particles_ = style != "line";
-    // pulse unless another style is named (older settings say "particles").
+    // stream unless another style is named (older settings say "particles", which was pulse).
     moteStyle_ = style == "embers" ? kMoteEmbers : style == "wisps" ? kMoteWisps
-               : style == "fireflies" ? kMoteFireflies : kMotePulse;
+               : style == "fireflies" ? kMoteFireflies : style == "pulse" || style == "particles" ? kMotePulse
+               : kMoteStream;
     std::string compass = config_.get("compass", "auto");
     compassMode_ = compass == "1" ? 1 : compass == "0" ? 0 : -1;
     float fovDeg = config_.getFloat("camera_fov", 0);
@@ -388,7 +399,17 @@ OverlayView App::buildView(const PlayerState& ps, const std::optional<Camera>& c
             v.debug.push_back(fmt(L"flag      %u = %ls", id, !f ? L"unreadable" : *f ? L"ON" : L"off"));
         }
         if (v.showCompass) v.debug.push_back(fmt(L"rel       %.1f deg", v.relAngle * 57.2958f));
-        if (trailOn_) v.debug.push_back(L"camera    " + camera_.status());
+        // A status of several lines: the label on the first, the rest indented under it.
+        auto addLines = [&](std::wstring head, const std::wstring& lines) {
+            for (size_t at = 0; at <= lines.size();) {
+                size_t nl = std::min(lines.find(L'\n', at), lines.size());
+                v.debug.push_back(head + lines.substr(at, nl - at));
+                head = L"          ";
+                at = nl + 1;
+            }
+        };
+        if (trailOn_) addLines(L"camera    ", camera_.status());
+        if (inWorldOn_) addLines(L"in-world  ", inWorld_.status(GetTickCount64()));
         if (cam)
             v.debug.push_back(fmt(L"eye       %.2f, %.2f, %.2f  fwd %.2f, %.2f, %.2f", cam->eye.x,
                                   cam->eye.y, cam->eye.z, cam->fwd.x, cam->fwd.y, cam->fwd.z));
@@ -403,6 +424,7 @@ bool App::tick() {
     if (!ds_.ready()) {
         overlay_.hide();
         camera_.reset();
+        inWorld_.detach();
         if (now < nextConnect_) return false;
         nextConnect_ = now + 2000;
         auto status = ds_.connect();
@@ -430,6 +452,8 @@ bool App::tick() {
 
     HWND game = ds_.window();
     PlayerState ps = ds_.player();
+    // The renderer goes in once you're in the world, not while the game is still starting up.
+    if (inWorldOn_ && ps.valid) inWorld_.attach(ds_.process().pid(), dir_, now);
     calib_.feed(ps, now);
     if (calib_.done() && config_.getInt("heading_sign", 0) == 0) {
         config_.set("heading_sign", std::to_string(calib_.sign()));
@@ -470,6 +494,7 @@ bool App::tick() {
     }
 
     if (!focused || !visible_) {
+        if (inWorldOn_) inWorld_.publish(OverlayView{}, {}, false, occlusion_, now);
         overlay_.hide();
         lastFrameKey_.clear();
         return false;
@@ -485,7 +510,7 @@ bool App::tick() {
     }
     const uint64_t still = now - stillSinceMs_;
     const bool alert = !calmOn_ || v.arrived || debug_ || offRoute_;
-    float trailTarget = alert || still > 1500 ? 1.0f : 0.45f;
+    float trailTarget = alert || still > 1500 ? 1.0f : 0.75f;
     float panelTarget = alert || still > 2500 || now - stepShownMs_ < 10000 ? 1.0f : 0.0f;
     float ease = std::min(1.0f, (now - lastCalmMs_) / 450.0f);  // about half a second to settle
     lastCalmMs_ = now;
@@ -496,6 +521,11 @@ bool App::tick() {
     v.particles = particles_;
     v.moteStyle = moteStyle_;
     v.timeSec = static_cast<float>(now % 3600000) / 1000.0f;  // wraps hourly, keeping float precision
+    if (inWorldOn_) {
+        // The renderer inside the game draws the motes when it's running; the window keeps the rest.
+        inWorld_.publish(v, camera_.source(), particles_, occlusion_, now);
+        v.motesInGame = particles_ && inWorld_.drawing(now);
+    }
 
     // Skip redrawing identical frames; the arrow is quantised to half a degree.
     std::wstring key = fmt(L"%d|%d|%.0f|%.1f|%.0f|%.0f|%.2f|%.2f|", v.showCompass, v.arrived,
@@ -509,7 +539,9 @@ bool App::tick() {
                    c.fwd.x, c.fwd.y, c.fwd.z, c.ys, ps.pos.x, ps.pos.y, ps.pos.z);
     }
     bool animating = v.camera.has_value();
-    if (animating && v.particles && v.trail.size() >= 2) key += fmt(L"|%.3f", v.timeSec);  // the motes drift
+    if (animating && v.particles && !v.motesInGame && v.trail.size() >= 2)
+        key += fmt(L"|%.3f", v.timeSec);  // the motes drift
+    key += v.motesInGame ? L"|in-game" : L"";
     if (key == lastFrameKey_ && EqualRect(&rc, &lastRect_)) return animating;
     lastFrameKey_ = key;
     lastRect_ = rc;

@@ -367,128 +367,34 @@ void drawTrail(gp::Graphics& g, const OverlayView& v, int w, int h, float s) {
     }
 }
 
-// How strongly the motes show `d` metres from your feet: clear for the next 20 m, then fading
-// out; faded in at your feet so nothing sits on the character.
-float moteFade(float d, float strength) {
-    float a = d < 20 ? 1 : max(0.0f, 1 - (d - 20) / 50);
-    return a * std::clamp((d - 1.2f) / 1.8f, 0.0f, 1.0f) * strength;
-}
-
-// Steady per-mote randomness in [0, 1): mote k, channel c. Each mote keeps its own size,
-// flicker and offset from frame to frame.
-float noise(int k, int c) {
-    uint32_t x = static_cast<uint32_t>(k) * 0x9E3779B1u ^ static_cast<uint32_t>(c + 1) * 0x85EBCA77u;
-    x ^= x >> 15;
-    x *= 0x2C1B3C6Du;
-    x ^= x >> 12;
-    x *= 0x297A2D39u;
-    x ^= x >> 15;
-    return (x & 0xFFFFFF) / 16777216.0f;
-}
-
-// One light: where it is, how bright and big, and an optional tail (a world offset behind it).
-struct Mote {
-    Vec3 pos;
-    float bright, size;
-    Vec3 tail;
-    bool hasTail;
-    float depth;
-};
-
-// The trail as motes: small soft lights placed along the route, each style animating them its own
-// way. They're pinned to the route (see trailBase), so they don't slide along with you as you walk.
+// The trail as motes (see motes.cpp for how each style moves). Skipped when the in-game
+// renderer draws them instead (OverlayView::motesInGame).
 void drawMotes(gp::Graphics& g, const OverlayView& v, int w, int h, float s) {
     const Camera& c = *v.camera;
     Viewport vp = fitViewport(w, h, c.aspect());
-    const float focal = vp.hh * c.ys, margin = 40 * s, t = v.timeSec;
-    const float pi2 = 2 * kPi;
+    const float focal = vp.hh * c.ys, margin = 40 * s;
 
-    // Distance along the step's route of each trail point (the first is your feet).
-    std::vector<float> at(v.trail.size());
-    float lead = length(v.trail.size() > 1 ? v.trail[1] - v.trail[0] : Vec3{});
-    at[0] = v.trailBase - lead;
-    for (size_t i = 1; i < v.trail.size(); ++i)
-        at[i] = i == 1 ? v.trailBase : at[i - 1] + length(v.trail[i] - v.trail[i - 1]);
-    const float feet = at.front(), end = at.back();
-    // The route's point and heading `m` metres along it.
-    size_t seg = 0;
-    auto sample = [&](float m, Vec3& pos, Vec3& dir) {
-        if (m < at.front() || m > at.back()) return false;
-        while (seg > 0 && at[seg] > m) --seg;
-        while (seg + 2 < at.size() && at[seg + 1] < m) ++seg;
-        float len = at[seg + 1] - at[seg];
-        Vec3 d = v.trail[seg + 1] - v.trail[seg];
-        pos = v.trail[seg] + d * (len > 0 ? (m - at[seg]) / len : 0);
-        float dl = length(d);
-        dir = dl > 0 ? d * (1 / dl) : Vec3{0, 0, 1};
-        return true;
+    std::vector<Mote> built;
+    // The stream is painted on the ground in game; out here it shows as pulse.
+    int style = v.moteStyle == kMoteStream ? kMotePulse : v.moteStyle;
+    buildMotes(v.trail, v.trailBase, v.timeSec, v.trailStrength, style, built);
+    struct Placed {
+        const Mote* m;
+        float depth;
     };
-
-    std::vector<Mote> motes;
-    auto add = [&](float m, Vec3 offset, float bright, float size, float tailLen) {
-        Vec3 pos, dir;
-        float fade = moteFade(m - feet, v.trailStrength);
-        if (fade * bright < 0.02f || !sample(m, pos, dir)) return;
-        Vec3 side{dir.z, 0, -dir.x};  // across the path, level
-        float sl = length(side);
-        side = sl > 0 ? side * (1 / sl) : Vec3{1, 0, 0};
-        Vec3 p = pos + side * offset.x + Vec3{0, offset.y, 0} + dir * offset.z;
-        Vec3 view = c.toView(p);
-        if (view.z < kNear) return;
-        motes.push_back({p, bright * fade, size, dir * -tailLen + Vec3{0, -0.04f * tailLen, 0}, tailLen > 0, view.z});
-    };
-    // Motes k = first..last at k * spacing + flow metres along the route.
-    auto each = [&](float spacing, float flow, auto&& fn) {
-        int first = static_cast<int>(std::ceil((feet - flow) / spacing));
-        int last = static_cast<int>(std::floor((end - flow) / spacing));
-        for (int k = first; k <= last && k - first < 600; ++k) fn(k, k * spacing + flow);
-    };
-
-    switch (v.moteStyle) {
-        case kMoteEmbers:
-            // Embers drifting forward: scattered around the path, each its own size and flicker,
-            // with a short glowing tail.
-            each(1.3f, t * 1.0f, [&](int k, float m) {
-                float flick = 0.55f + 0.45f * (0.5f + 0.5f * std::sin(t * (2.5f + 2 * noise(k, 3)) + pi2 * noise(k, 4)));
-                Vec3 off{(noise(k, 1) - 0.5f) * 0.5f, 0.15f + noise(k, 2) * 0.35f + 0.06f * std::sin(t * 1.3f + k), 0};
-                add(m, off, flick, 0.6f + 0.8f * noise(k, 5), 0.45f);
-            });
-            break;
-        case kMotePulse:
-            // Still motes with soft bands of light travelling through them towards the destination.
-            each(0.9f, 0, [&](int, float m) {
-                float wave = 0.5f + 0.5f * std::cos(pi2 * (m - t * 5.5f) / 7.0f);
-                float crest = wave * wave * wave * wave * wave * wave;
-                add(m, Vec3{0, 0.25f, 0}, 0.18f + 0.82f * crest, 0.7f + 0.5f * crest, 0);
-            });
-            break;
-        case kMoteWisps:
-            // Two strands of tiny motes spiralling around the path as they flow along it.
-            each(0.55f, t * 1.3f, [&](int k, float m) {
-                float a = m * 2.2f + (k & 1) * kPi + t * 0.5f;
-                Vec3 off{std::cos(a) * 0.22f, 0.35f + std::sin(a) * 0.22f, 0};
-                add(m, off, 0.7f + 0.3f * std::sin(a), 0.55f, 0);
-            });
-            break;
-        default:  // kMoteFireflies
-            // Sparse lights that fade in, wander gently, drift forward and fade out again.
-            each(2.2f, t * 0.5f, [&](int k, float m) {
-                float period = 3 + 2 * noise(k, 2);
-                float u = std::fmod(t / period + noise(k, 3), 1.0f);
-                float life = std::sin(kPi * u);
-                Vec3 off{0.5f * std::sin(t * 0.6f * (1 + noise(k, 4)) + pi2 * noise(k, 5)),
-                         0.3f + 0.35f * (0.5f + 0.5f * std::sin(t * 0.8f + k)), noise(k, 1) - 0.5f};
-                add(m, off, life * life, 0.8f + 0.6f * noise(k, 6), 0);
-            });
-            break;
+    std::vector<Placed> motes;
+    for (const Mote& m : built) {
+        float z = c.toView(m.pos).z;
+        if (z >= kNear) motes.push_back({&m, z});
     }
 
     // Far ones first, so near motes sit on top.
-    std::sort(motes.begin(), motes.end(), [](const Mote& a, const Mote& b) { return a.depth > b.depth; });
-    for (const Mote& m : motes) {
+    std::sort(motes.begin(), motes.end(), [](const Placed& a, const Placed& b) { return a.depth > b.depth; });
+    for (const Placed& pl : motes) {
+        const Mote& m = *pl.m;
         gp::PointF sp = toScreen(c, vp, c.toView(m.pos));
         if (sp.X < -margin || sp.X > w + margin || sp.Y < -margin || sp.Y > h + margin) continue;
-        float r = std::clamp(0.05f * focal / m.depth * m.size, 1.0f * s, 5.0f * s);
+        float r = moteRadius(focal, pl.depth, m.size, s);
         float a = std::clamp(m.bright, 0.0f, 1.0f);
         if (m.hasTail) {
             Vec3 tv = c.toView(m.pos + m.tail);
@@ -504,9 +410,9 @@ void drawMotes(gp::Graphics& g, const OverlayView& v, int w, int h, float s) {
                 }
             }
         }
-        gp::SolidBrush halo(gp::Color(static_cast<BYTE>(34 * a), 230, 170, 92)),
-            glow(gp::Color(static_cast<BYTE>(80 * a), 240, 194, 118)),
-            core(gp::Color(static_cast<BYTE>(235 * a), 253, 236, 192));
+        gp::SolidBrush halo(gp::Color(static_cast<BYTE>(48 * a), 230, 170, 92)),
+            glow(gp::Color(static_cast<BYTE>(110 * a), 240, 194, 118)),
+            core(gp::Color(static_cast<BYTE>(250 * a), 253, 236, 192));
         g.FillEllipse(&halo, sp.X - r * 3.2f, sp.Y - r * 3.2f, r * 6.4f, r * 6.4f);
         g.FillEllipse(&glow, sp.X - r * 1.8f, sp.Y - r * 1.8f, r * 3.6f, r * 3.6f);
         g.FillEllipse(&core, sp.X - r, sp.Y - r, r * 2, r * 2);
@@ -611,8 +517,11 @@ void drawNotice(gp::Graphics& g, const std::wstring& text, float cx, float y, fl
 void paintOverlay(gp::Graphics& g, int w, int h, const OverlayView& v) {
     float s = std::clamp(h / 1080.0f, 0.6f, 2.5f);
     if (v.camera && v.trail.size() >= 2) {
-        if (v.particles) drawMotes(g, v, w, h, s);
-        else drawTrail(g, v, w, h, s);
+        if (v.particles) {
+            if (!v.motesInGame) drawMotes(g, v, w, h, s);
+        } else {
+            drawTrail(g, v, w, h, s);
+        }
         if (v.trailEndsAtGoal) drawGoalMarker(g, v, w, h, s);
     }
     if (v.showCompass) drawCompass(g, v, w / 2.0f, 46 * s, s);

@@ -5,10 +5,11 @@ IDI_APP ICON "src\\app.ico"
 IDR_GUIDE RCDATA "guide.txt"
 IDR_NAVMESH RCDATA "navmesh.bin"
 IDR_CONFIG RCDATA "config.ini"
+IDR_HOOK RCDATA "build\DSRPathfinderHook.dll"
 
 1 VERSIONINFO
-FILEVERSION 1, 0, 0, 0
-PRODUCTVERSION 1, 0, 0, 0
+FILEVERSION 1, 1, 0, 0
+PRODUCTVERSION 1, 1, 0, 0
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
@@ -16,8 +17,8 @@ BEGIN
     BEGIN
       VALUE "FileDescription", "DSR Pathfinder: a route overlay for Dark Souls Remastered"
       VALUE "ProductName", "DSR Pathfinder"
-      VALUE "FileVersion", "1.0.0"
-      VALUE "ProductVersion", "1.0.0"
+      VALUE "FileVersion", "1.1.0"
+      VALUE "ProductVersion", "1.1.0"
       VALUE "LegalCopyright", "MIT License, vladi245"
     END
   END

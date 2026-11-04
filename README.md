@@ -66,6 +66,9 @@ right away:
 - **Calm mode**: the guide steps back while you follow the route.
 - **Start the game with the app.**
 
+The menu also has **Reload the guide** (F10), which reads `guide.txt` again and starts the
+current step's route over.
+
 The menu saves your choices to `config.ini`. A few rarely needed numbers live only there
 (**Edit the settings file...** in the menu opens it): `camera_fov`, `waypoint_radius`,
 `arrow_mirror`. Edits to the file apply as soon as you save it.
@@ -184,7 +187,9 @@ route, and **regenerating keeps them**. `--no-routes` skips routing.
 **Routing from where you are.** The guide's routes start where the previous step ended. If you're
 somewhere else, say back at a bonfire after dying or a Homeward Bone, more than 25 m from the
 route, the overlay works out a walking route from you to the next destination with the same
-meshes and follows that, and switches back once you're on the guide's route. The generator
+meshes and follows that, and switches back once you're on the guide's route. After a respawn or
+warp the step's progress starts over from where you are, so a step you'd already walked to
+before dying shows its trail again. The generator
 writes the joined meshes to `navmesh.bin` (about 10 MB) next to `guide.txt`, and `build.bat`
 builds it into the exe.
 

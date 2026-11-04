@@ -8,7 +8,7 @@ constexpr UINT kTrayMsg = WM_APP + 1;
 constexpr UINT kId = 1;
 enum MenuId : UINT {
     kMenuStatus = 100, kMenuToggle, kMenuSettings, kMenuFolder, kMenuLaunch, kMenuQuit,
-    kMenuTrail, kMenuInWorld, kMenuOcclusion, kMenuCalm, kMenuLaunchOnStart, kMenuRecalibrate,
+    kMenuTrail, kMenuInWorld, kMenuOcclusion, kMenuCalm, kMenuLaunchOnStart, kMenuRecalibrate, kMenuReload,
     kMenuStyle = 200,    // + index into kStyles
     kMenuCompass = 300,  // + index into kCompass
 };
@@ -131,6 +131,7 @@ void Tray::showMenu() {
     AppendMenuW(menu, MF_STRING | MF_GRAYED, kMenuStatus, status_.c_str());
     AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(menu, check(overlayShown_), kMenuToggle, L"Show the overlay\tF9");
+    AppendMenuW(menu, MF_STRING, kMenuReload, L"Reload the guide\tF10");
     AppendMenuW(menu, MF_STRING | (gameRunning_ ? MF_GRAYED : 0), kMenuLaunch, L"Launch Dark Souls Remastered");
     AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(menu, MF_POPUP, reinterpret_cast<UINT_PTR>(trail), L"Trail");
@@ -160,6 +161,7 @@ void Tray::showMenu() {
         case kMenuLaunch: pending_ = kLaunchGame; break;
         case kMenuQuit: pending_ = kQuit; break;
         case kMenuRecalibrate: pending_ = kRecalibrate; break;
+        case kMenuReload: pending_ = kReload; break;
         case kMenuTrail: setting("trail", s.trail ? "0" : "1"); break;
         case kMenuInWorld: setting("in_world", s.inWorld ? "0" : "1"); break;
         case kMenuOcclusion: setting("occlusion", s.occlusion ? "0" : "1"); break;

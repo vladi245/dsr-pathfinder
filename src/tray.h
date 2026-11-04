@@ -8,7 +8,7 @@
 // menu holds the settings too, so nobody has to edit config.ini.
 class Tray {
 public:
-    enum Command { kNone, kToggleOverlay, kOpenSettings, kOpenFolder, kLaunchGame, kQuit, kSetting, kRecalibrate };
+    enum Command { kNone, kToggleOverlay, kOpenSettings, kOpenFolder, kLaunchGame, kQuit, kSetting, kRecalibrate, kReload };
 
     // What the settings submenus show ticked (the values as config.ini spells them).
     struct Settings {

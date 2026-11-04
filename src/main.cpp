@@ -34,6 +34,7 @@ namespace {
 // Further than this from the guide's route (metres, height counting triple), the trail routes
 // from where you are instead.
 constexpr float kOffRoute = 25;
+constexpr float kTeleport = 15;  // metres between two frames: no running or falling covers that
 
 struct Key {
     int vk;
@@ -65,6 +66,7 @@ public:
 
 private:
     void loadGuide();
+    void reloadGuide();
     void applySettings();
     void saveConfig();
     void recalibrate();
@@ -125,6 +127,10 @@ private:
     int moteStyle_ = kMoteStream;
     uint64_t stepShownMs_ = 0, stillSinceMs_ = 0, lastCalmMs_ = 0;
     Vec3 anchor_{};  // where you were when you last counted as moving
+    // Where the character was on the last frame, to notice a respawn, bonfire warp or Homeward
+    // Bone: the route's progress then starts again from wherever you are.
+    Vec3 lastPos_{};
+    bool lastValid_ = false;
     float trailStrength_ = 1, panelStrength_ = 1;
 
     Key kPrev{VK_F5}, kNext{VK_F6}, kRecord{VK_F7}, kUndo{VK_F8}, kToggle{VK_F9},
@@ -252,6 +258,7 @@ void App::handleTray() {
         case Tray::kLaunchGame: launchGame(); break;
         case Tray::kQuit: quit_ = true; break;
         case Tray::kRecalibrate: recalibrate(); break;
+        case Tray::kReload: reloadGuide(); break;
         case Tray::kSetting:
             // Picked in the menu: saved to config.ini and in effect right away.
             config_.set(tray_.settingKey(), tray_.settingValue());
@@ -278,6 +285,14 @@ void App::loadGuide() {
     std::string err;
     if (!guide_.load(dir_ / fs::u8path(file), err)) std::printf("Guide problem: %s\n", err.c_str());
     std::printf("Loaded %zu steps from %s\n", guide_.steps().size(), file.c_str());
+}
+
+// The guide file read again (after editing it), and the current step's route started over.
+void App::reloadGuide() {
+    loadGuide();
+    goToStep(step_, false);
+    live_.clear();
+    notify(L"Guide reloaded");
 }
 
 void App::goToStep(size_t s, bool forward) {
@@ -311,11 +326,7 @@ void App::handleKeys(const PlayerState& ps) {
             debug_ = !debug_;
         }
     }
-    if (kReload.pressed()) {
-        loadGuide();
-        goToStep(step_, false);
-        notify(L"Guide reloaded");
-    }
+    if (kReload.pressed()) reloadGuide();
     if (kRecord.pressed()) {
         if (!ps.valid || !current()) {
             notify(L"Can't record: no character position");
@@ -353,6 +364,18 @@ OverlayView App::buildView(const PlayerState& ps, const std::optional<Camera>& c
     const Step* rs = st;
     size_t ahead = step_;
     while (rs->waypoints.empty() && ahead + 1 < n) rs = &guide_.steps()[++ahead];
+
+    // Died, rested, warped or loaded in: the character is somewhere else (or was gone during the
+    // loading screen). The route's progress only ever moves forward, so without this the step
+    // would stay "arrived" at the spot where you died and the trail wouldn't come back.
+    if (ps.valid) {
+        if (!lastValid_ || length(ps.pos - lastPos_) > kTeleport) {
+            route_.reset();
+            live_.clear();
+        }
+        lastPos_ = ps.pos;
+    }
+    lastValid_ = ps.valid;
 
     std::wstring status;
     const auto& wps = rs->waypoints;
@@ -450,7 +473,7 @@ OverlayView App::buildView(const PlayerState& ps, const std::optional<Camera>& c
             status = L"Done here? Press F6 for the next step.";
     }
     v.hint = status.empty() ? L"" : status + L"\n";
-    v.hint += L"F5 back · F6 next · F7 add waypoint · F8 undo · F9 hide";
+    v.hint += L"F5 back · F6 next · F7 add waypoint · F8 undo · F9 hide · F10 reload";
 
     if (GetTickCount64() < noticeUntil_) v.notice = notice_;
 
